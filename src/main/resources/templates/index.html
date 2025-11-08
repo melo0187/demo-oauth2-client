@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OAuth2 Client Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 3rem;
+    }
+    h1 {
+      color: #333;
+    }
+    a.button {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      margin: 0.3rem 0;
+      border-radius: 0.4rem;
+      text-decoration: none;
+      background: #0366d6;
+      color: white;
+      font-weight: bold;
+    }
+    a.button:hover {
+      background: #024a9b;
+    }
+    ul {
+      margin-top: 1rem;
+      list-style-type: square;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome<span th:if="${username}" th:text="${username}">, User</span>!</h1>
+
+  <p th:if="${connected}">
+    <span style="color: green; font-weight: bold;">✅ GitHub Connected</span>
+  </p>
+  
+  <p th:if="${!connected}">
+    <a class="button" href="/oauth2/authorize/github">Connect GitHub</a>
+  </p>
+  
+  <p>
+    <a class="button" href="/repos">List My Repos</a>
+  </p>
+
+  <div th:if="${repos}">
+    <h2>Your GitHub Repositories:</h2>
+    <ul>
+      <li th:each="repo : ${repos}" th:text="${repo}"></li>
+    </ul>
+  </div>
+</body>
+</html>
+
