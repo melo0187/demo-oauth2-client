@@ -1,8 +1,10 @@
 package com.example.demo.controller
 
+import com.example.demo.services.AuthenticationJwtService
 import com.example.demo.services.OAuth2ConnectionService
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ServerWebExchange
@@ -11,13 +13,13 @@ import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
 import java.net.URI
-import kotlin.io.encoding.Base64
 
 @Controller
 @RequestMapping("/oauth2")
 class OAuth2ConnectController(
     clientRegistrationRepository: ReactiveClientRegistrationRepository,
-    private val connectionService: OAuth2ConnectionService
+    private val connectionService: OAuth2ConnectionService,
+    private val authenticationJwtService: AuthenticationJwtService
 ) {
     private val resolver: ServerOAuth2AuthorizationRequestResolver =
         DefaultServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository)
@@ -25,13 +27,15 @@ class OAuth2ConnectController(
     @GetMapping("/authorize/{registrationId}")
     suspend fun authorize(
         @PathVariable registrationId: String,
+        authentication: Authentication,
         exchange: ServerWebExchange,
     ) {
         val authRequest = resolver.resolve(exchange, registrationId).awaitSingleOrNull()
             ?: return
 
+        val encodedAuth = authenticationJwtService.encodeAuthentication(authentication)
         val customizedAuthRequest = OAuth2AuthorizationRequest.from(authRequest)
-            .state(Base64.UrlSafe.encode("my-encoded-authentication".encodeToByteArray()))
+            .state(encodedAuth)
             .build()
 
         exchange.response.statusCode = HttpStatus.FOUND

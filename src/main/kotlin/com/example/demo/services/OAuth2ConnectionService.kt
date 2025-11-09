@@ -3,8 +3,6 @@ package com.example.demo.services
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.http.MediaType
-import org.springframework.security.authentication.AnonymousAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.registration.ClientRegistration
@@ -18,13 +16,13 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
-import kotlin.io.encoding.Base64
 
 @Service
 class OAuth2ConnectionService(
     private val clientRegistrationRepository: ReactiveClientRegistrationRepository,
     private val authorizedClientService: ReactiveOAuth2AuthorizedClientService,
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
+    private val authenticationJwtService: AuthenticationJwtService
 ) {
     suspend fun exchangeCodeForToken(
         registrationId: String,
@@ -32,11 +30,7 @@ class OAuth2ConnectionService(
         state: String,
         exchange: ServerWebExchange
     ): OAuth2AuthorizedClient {
-        val principal = AnonymousAuthenticationToken(
-            "key",
-            Base64.UrlSafe.decode(state).decodeToString(),
-            listOf(SimpleGrantedAuthority("ROLE_USER"))
-        )
+        val principal = authenticationJwtService.decodeAuthentication(state)
 
         val registration = clientRegistrationRepository.findByRegistrationId(registrationId).awaitSingleOrNull()
             ?: throw IllegalArgumentException("Unknown registrationId: $registrationId")

@@ -31,7 +31,7 @@
   </style>
 </head>
 <body>
-  <h1>Welcome<span th:if="${username}" th:text="${username}">, User</span>!</h1>
+  <h1>Welcome <span th:if="${username}" th:text="${username}"></span>!</h1>
 
   <p th:if="${connected}">
     <span style="color: green; font-weight: bold;">✅ GitHub Connected</span>
